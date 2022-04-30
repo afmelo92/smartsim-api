@@ -1,9 +1,12 @@
 import UserController from '@controllers/UserController';
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 
 const usersRouter = Router();
 
-usersRouter.get('/users', (request:Request, response: Response) => response.json({ users: '/users online' }));
+usersRouter.get('/users', UserController.index);
+usersRouter.get('/users/:id', UserController.show);
 usersRouter.post('/users', UserController.store);
+usersRouter.delete('/users/:id', UserController.delete);
+usersRouter.put('/users/:id', UserController.update);
 
 export default usersRouter;
