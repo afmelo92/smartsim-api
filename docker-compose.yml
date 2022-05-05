@@ -1,0 +1,62 @@
+services:
+  mongo1:
+    image: mongo:latest
+    container_name: mongo1
+    restart: always
+    volumes:
+      - ~/mongors/data1:/data/db
+      - ./rs-init.sh:/scripts/rs-init.sh
+    networks:
+      - mongors-network
+    ports:
+      - ${DB1_PORT}:27017
+    links:
+      - mongo2
+      - mongo3
+    entrypoint: ["/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs"]
+  mongo2:
+    image: mongo:latest
+    container_name: mongo2
+    restart: always
+    volumes:
+      - ~/mongors/data2:/data/db
+    networks:
+      - mongors-network
+    ports:
+      - ${DB2_PORT}:27017
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+  mongo3:
+    image: mongo:latest
+    container_name: mongo3
+    restart: always
+    volumes:
+      - ~/mongors/data3:/data/db
+    networks:
+      - mongors-network
+    ports:
+      - ${DB3_PORT}:27017
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+
+  api:
+    image: node:latest
+    container_name: api_smartsim
+    restart: always
+    profiles:
+      - production
+    depends_on:
+      - mongo1
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    volumes:
+      - .:/usr/src/app
+    working_dir: /usr/src/app
+    command: yarn compile
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 5
+
+networks:
+  mongors-network:
+    driver: bridge
