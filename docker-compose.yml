@@ -7,7 +7,8 @@ services:
       - ~/mongors/data1:/data/db
       - ./rs-init.sh:/scripts/rs-init.sh
     networks:
-      - mongors-network
+      mongo-replicaset-network:
+        ipv4_address: ${DB1_IP}
     ports:
       - ${DB1_PORT}:27017
     links:
@@ -21,7 +22,8 @@ services:
     volumes:
       - ~/mongors/data2:/data/db
     networks:
-      - mongors-network
+      mongo-replicaset-network:
+        ipv4_address: ${DB2_IP}
     ports:
       - ${DB2_PORT}:27017
     entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
@@ -32,7 +34,8 @@ services:
     volumes:
       - ~/mongors/data3:/data/db
     networks:
-      - mongors-network
+      mongo-replicaset-network:
+        ipv4_address: ${DB3_IP}
     ports:
       - ${DB3_PORT}:27017
     entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
@@ -58,5 +61,9 @@ services:
         max-file: 5
 
 networks:
-  mongors-network:
+  mongo-replicaset-network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DB_SUBNET}

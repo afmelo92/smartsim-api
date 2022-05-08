@@ -1,8 +1,24 @@
 import express from 'express';
+import 'express-async-errors';
 import helmet from 'helmet';
 import CORSHandler from '@middlewares/CORSHandler';
 import errorHandler from '@middlewares/ErrorHandler';
 import usersRouter from '@routes/users';
+
+process.on('unhandledRejection', (reason, promise) => {
+  // eslint-disable-next-line no-console
+  console.error(
+    `App exiting due to an unhandled promise: ${promise} and reason: ${reason}`,
+  );
+
+  throw reason;
+});
+
+process.on('uncaughtException', (error) => {
+  // eslint-disable-next-line no-console
+  console.error(`App exiting due to an uncaught exception: ${error}`);
+  process.exit(1);
+});
 
 const app = express();
 

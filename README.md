@@ -30,7 +30,7 @@ com os IP's dos containers e seus respectivos nomes. Para identificar o IP de ca
 container no replicaset, execute o comando:
 
 ```
-docker network inspect smartsim_mongors-network
+docker network inspect smartsim_mongo-replicaset-network
 ```
 
 Por último, execute o comando

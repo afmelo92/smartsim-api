@@ -5,6 +5,7 @@ const files = path.resolve(__dirname, '../');
 
 moduleAlias.addAliases({
   '@controllers': path.join(files, 'controllers'),
+  '@repositories': path.join(files, 'repositories'),
   '@middlewares': path.join(files, 'middlewares'),
   '@routes': path.join(files, 'routes'),
   '@utils': path.join(files, 'utils'),

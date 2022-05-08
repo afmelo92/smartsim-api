@@ -1,24 +1,14 @@
-/* eslint-disable no-nested-ternary */
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { validateEmail } from '@utils/validateEmail';
-import UserRepository from 'src/repositories/UserRepository';
+import UserRepository from '@repositories/UserRepository';
+import { User } from '@prisma/client';
 
-interface CreateUserData {
-  name: string;
-  email: string;
-  password: string;
+interface CreateUserData extends User {
   confirm_password: string;
 }
 
-interface UpdateUserData {
-  name?: string;
-  email?: string;
-  password?: string;
-  confirm_password?: string;
-}
-
-interface GetUserParams {
+interface Params {
   id: string
 }
 
@@ -84,7 +74,7 @@ class UserController {
     });
   }
 
-  async show(request: Request<GetUserParams>, response: Response) {
+  async show(request: Request<Params>, response: Response) {
     const { id } = request.params;
 
     const user = await UserRepository.findById({ id });
@@ -96,7 +86,7 @@ class UserController {
     return response.json({ user });
   }
 
-  async delete(request: Request<GetUserParams>, response: Response) {
+  async delete(request: Request<Params>, response: Response) {
     const { id } = request.params;
 
     const user = await UserRepository.delete({
@@ -110,7 +100,7 @@ class UserController {
     });
   }
 
-  async update(request: Request<GetUserParams, any, UpdateUserData>, response: Response) {
+  async update(request: Request<Params, any, Partial<CreateUserData>>, response: Response) {
     const { id } = request.params;
     const {
       name, email, password, confirm_password,
@@ -132,6 +122,14 @@ class UserController {
 
     if (!isEmailValid) {
       return response.status(400).json({ error: 'Invalid e-mail.' });
+    }
+
+    const isEmailAlreadyUsed = await UserRepository.findByEmail({
+      email: email.toLowerCase(),
+    });
+
+    if (isEmailAlreadyUsed && email.toLowerCase() !== isEmailAlreadyUsed.email) {
+      return response.status(400).json({ error: 'E-mail already used.' });
     }
 
     if (!password) {
