@@ -9,4 +9,5 @@ moduleAlias.addAliases({
   '@middlewares': path.join(files, 'middlewares'),
   '@routes': path.join(files, 'routes'),
   '@utils': path.join(files, 'utils'),
+  '@config': path.join(files, 'config'),
 });
