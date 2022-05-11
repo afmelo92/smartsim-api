@@ -1,15 +1,12 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { User } from '@prisma/client';
+
 import { validateEmail } from '@utils/validateEmail';
 import UserRepository from '@repositories/UserRepository';
-import { User } from '@prisma/client';
 
 interface CreateUserData extends User {
   confirm_password: string;
-}
-
-interface Params {
-  id: string
 }
 
 class UserController {
@@ -26,7 +23,6 @@ class UserController {
 
     if (!name || !email || !password || !confirm_password) {
       return response.status(400).json({
-        status: 400,
         error: 'All fields are required.',
       });
     }
@@ -34,14 +30,12 @@ class UserController {
 
     if (!isEmailValid) {
       return response.status(400).json({
-        status: 400,
         error: 'Invalid e-mail.',
       });
     }
 
     if (confirm_password !== password) {
       return response.status(400).json({
-        status: 400,
         error: 'Password/Confirm password does not match.',
       });
     }
@@ -52,7 +46,6 @@ class UserController {
 
     if (checkUserExists) {
       return response.status(400).json({
-        status: 400,
         error: 'E-mail already used.',
       });
     }
@@ -68,14 +61,15 @@ class UserController {
     });
 
     return response.json({
-      status: 200,
       message: 'User created.',
-      user,
+      data: user,
     });
   }
 
-  async show(request: Request<Params>, response: Response) {
+  async show(request: Request, response: Response) {
     const { id } = request.params;
+
+    // checar se usuario autenticado é um admin ou o proprio usuario
 
     const user = await UserRepository.findById({ id });
 
@@ -86,21 +80,22 @@ class UserController {
     return response.json({ user });
   }
 
-  async delete(request: Request<Params>, response: Response) {
+  async delete(request: Request, response: Response) {
     const { id } = request.params;
+
+    // checar se usuario autenticado é um admin ou o proprio usuario
 
     const user = await UserRepository.delete({
       id,
     });
 
     return response.json({
-      status: 200,
       message: 'User deleted.',
-      user,
+      data: user,
     });
   }
 
-  async update(request: Request<Params, any, Partial<CreateUserData>>, response: Response) {
+  async update(request: Request, response: Response) {
     const { id } = request.params;
     const {
       name, email, password, confirm_password,
@@ -108,11 +103,10 @@ class UserController {
 
     const checkUserExists = await UserRepository.findById({ id });
 
-    // checar se usuario autenticado é um admin ou o proprio usuario
-
     if (!checkUserExists) {
       return response.status(400).json({ error: 'User not found.' });
     }
+    // checar se usuario autenticado é um admin ou o proprio usuario
 
     if (!name || !email) {
       return response.status(400).json({ error: 'Name/e-mail required.' });
@@ -140,9 +134,8 @@ class UserController {
       });
 
       return response.json({
-        status: 200,
         message: 'User updated.',
-        user,
+        data: user,
       });
     }
 
@@ -160,9 +153,8 @@ class UserController {
     });
 
     return response.json({
-      status: 200,
       message: 'User updated.',
-      user,
+      data: user,
     });
   }
 }

@@ -1,12 +1,26 @@
 import { PrismaClient, User } from '@prisma/client';
 
+import message from '@config/message';
+
 const prisma = new PrismaClient();
 
 class UserRepository {
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<Partial<User>[]> {
     await prisma.$connect();
 
-    const result = await prisma.user.findMany();
+    const result = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        refer: true,
+        sms_key: true,
+        credits: true,
+        admin: true,
+        messages: true,
+        _count: true,
+      },
+    });
 
     await prisma.$disconnect();
 
@@ -20,19 +34,8 @@ class UserRepository {
       where: {
         email,
       },
-    });
-
-    await prisma.$disconnect();
-
-    return result;
-  }
-
-  async findById({ id }: Pick<User, 'id'>): Promise<User | null> {
-    await prisma.$connect();
-
-    const result = await prisma.user.findFirst({
-      where: {
-        id,
+      include: {
+        messages: true,
       },
     });
 
@@ -41,14 +44,53 @@ class UserRepository {
     return result;
   }
 
-  async create({ name, email, password }: Pick<User, 'name' | 'email' | 'password'>): Promise<User> {
+  async findById({ id }: Pick<User, 'id'>): Promise<Partial<User> | null> {
     await prisma.$connect();
+
+    const result = await prisma.user.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        refer: true,
+        sms_key: true,
+        credits: true,
+        admin: true,
+        messages: true,
+        _count: true,
+      },
+    });
+
+    await prisma.$disconnect();
+
+    return result;
+  }
+
+  async create({
+    name,
+    email,
+    password,
+  }: Pick<User, 'name' | 'email' | 'password'>): Promise<Partial<User> | null> {
+    await prisma.$connect();
+
+    const { key } = message.sms;
 
     const result = await prisma.user.create({
       data: {
         name,
         email,
         password,
+        sms_key: key,
+        credits: 0,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        messages: true,
       },
     });
 
@@ -75,7 +117,7 @@ class UserRepository {
 
   async update({
     id, name, email, password,
-  }: Partial<User>):Promise<User> {
+  }: Partial<User>):Promise<Partial<User>> {
     await prisma.$connect();
 
     const result = await prisma.user.update({
@@ -86,6 +128,15 @@ class UserRepository {
         name,
         email,
         password,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        refer: true,
+        sms_key: true,
+        credits: true,
+        messages: true,
       },
     });
 
