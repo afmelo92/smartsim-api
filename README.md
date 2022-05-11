@@ -2,7 +2,7 @@
 
 API de gestão e envio de SMS por cliente/empresa
 
-# Preparação do ambiente de desenvolvimento
+## Preparação do ambiente de desenvolvimento
 
 Para iniciar o ambiente com docker compose, certifique-se de que possui o mesmo
 instalado em sua máquina. Em seguida confira o arquivo:
