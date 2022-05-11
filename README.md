@@ -1,5 +1,7 @@
 # SMARTSEND - Backend do projeto Smartsend SMS
 
+API de gestão e envio de SMS por cliente/empresa
+
 # Preparação do ambiente de desenvolvimento
 
 Para iniciar o ambiente com docker compose, certifique-se de que possui o mesmo
