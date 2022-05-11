@@ -1,9 +1,12 @@
 import express from 'express';
 import 'express-async-errors';
 import helmet from 'helmet';
+
 import CORSHandler from '@middlewares/CORSHandler';
 import errorHandler from '@middlewares/ErrorHandler';
-import usersRouter from '@routes/users';
+
+import usersRouter from '@routes/users.routes';
+import sessionRouter from '@routes/session.routes';
 
 process.on('unhandledRejection', (reason, promise) => {
   // eslint-disable-next-line no-console
@@ -28,6 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(CORSHandler);
 
 app.use(usersRouter);
+app.use(sessionRouter);
 
 app.use(errorHandler);
 
