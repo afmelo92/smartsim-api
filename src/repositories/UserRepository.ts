@@ -1,6 +1,7 @@
 import { PrismaClient, User } from '@prisma/client';
 
 import message from '@config/message';
+import upload from '@config/upload';
 
 const prisma = new PrismaClient();
 
@@ -60,6 +61,7 @@ class UserRepository {
         credits: true,
         admin: true,
         messages: true,
+        avatar: true,
         _count: true,
       },
     });
@@ -77,6 +79,7 @@ class UserRepository {
     await prisma.$connect();
 
     const { key } = message.sms;
+    const { bucket_url, default_avatar_filename } = upload.aws;
 
     const result = await prisma.user.create({
       data: {
@@ -85,6 +88,7 @@ class UserRepository {
         password,
         sms_key: key,
         credits: 0,
+        avatar: `${bucket_url}/${default_avatar_filename}`,
       },
       select: {
         id: true,
@@ -116,7 +120,7 @@ class UserRepository {
   }
 
   async update({
-    id, name, email, password,
+    id, name, email, password, avatar,
   }: Partial<User>):Promise<Partial<User>> {
     await prisma.$connect();
 
@@ -128,6 +132,7 @@ class UserRepository {
         name,
         email,
         password,
+        avatar,
       },
       select: {
         id: true,
@@ -137,6 +142,7 @@ class UserRepository {
         sms_key: true,
         credits: true,
         messages: true,
+        avatar: true,
       },
     });
 

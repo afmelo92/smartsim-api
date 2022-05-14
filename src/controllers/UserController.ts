@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
 import { validateEmail } from '@utils/validateEmail';
 import UserRepository from '@repositories/UserRepository';
+import S3StorageProvider from '@providers/S3StorageProvider';
 
 interface CreateUserData extends User {
   confirm_password: string;
@@ -60,7 +62,7 @@ class UserController {
       password: hashedPassword,
     });
 
-    return response.json({
+    return response.status(201).json({
       message: 'User created.',
       data: user,
     });
@@ -69,21 +71,17 @@ class UserController {
   async show(request: Request, response: Response) {
     const { id } = request.params;
 
-    // checar se usuario autenticado é um admin ou o proprio usuario
-
     const user = await UserRepository.findById({ id });
 
     if (!user) {
       return response.status(400).json({ error: 'User not found.' });
     }
 
-    return response.json({ user });
+    return response.json({ data: user });
   }
 
   async delete(request: Request, response: Response) {
     const { id } = request.params;
-
-    // checar se usuario autenticado é um admin ou o proprio usuario
 
     const user = await UserRepository.delete({
       id,
@@ -98,7 +96,7 @@ class UserController {
   async update(request: Request, response: Response) {
     const { id } = request.params;
     const {
-      name, email, password, confirm_password,
+      name, email, password, confirm_password, filename,
     } = request.body;
 
     const checkUserExists = await UserRepository.findById({ id });
@@ -126,6 +124,17 @@ class UserController {
       return response.status(400).json({ error: 'E-mail already used.' });
     }
 
+    let signedUrl = null;
+    let fileId = null;
+
+    if (filename) {
+      fileId = `${uuidv4()}-${filename}`;
+
+      const s3Storage = new S3StorageProvider();
+
+      signedUrl = await s3Storage.generateSignedUrl(fileId);
+    }
+
     if (!password) {
       const user = await UserRepository.update({
         id,
@@ -135,7 +144,11 @@ class UserController {
 
       return response.json({
         message: 'User updated.',
-        data: user,
+        data: {
+          ...user,
+          avatar_url: signedUrl,
+          avatar_id: fileId,
+        },
       });
     }
 
@@ -154,7 +167,11 @@ class UserController {
 
     return response.json({
       message: 'User updated.',
-      data: user,
+      data: {
+        ...user,
+        avatar_url: signedUrl,
+        avatar_id: fileId,
+      },
     });
   }
 }

@@ -18,6 +18,7 @@ model User {
   refer       String?   @unique @default(uuid())
   sms_key     String?
   credits     Int?
+  avatar      String?
   admin       Boolean   @default(false)
   messages    Message[]
   created_at  DateTime  @default(now())
