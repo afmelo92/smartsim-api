@@ -21,7 +21,7 @@ export default async function personalAction(
 
     return next();
   } catch (error) {
-    return response.status(401).json({
+    return response.status(403).json({
       error: 'JWT token missing',
     });
   }
