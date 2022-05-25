@@ -19,6 +19,7 @@ class UserRepository {
         credits: true,
         admin: true,
         messages: true,
+        avatar: true,
         _count: true,
       },
     });
@@ -120,7 +121,7 @@ class UserRepository {
   }
 
   async update({
-    id, name, email, password, avatar,
+    id, name, email, password, avatar, credits,
   }: Partial<User>):Promise<Partial<User>> {
     await prisma.$connect();
 
@@ -133,13 +134,13 @@ class UserRepository {
         email,
         password,
         avatar,
+        credits,
       },
       select: {
         id: true,
         email: true,
         name: true,
         refer: true,
-        sms_key: true,
         credits: true,
         messages: true,
         avatar: true,

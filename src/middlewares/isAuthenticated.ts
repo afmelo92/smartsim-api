@@ -39,8 +39,11 @@ export default async function isAuthenticated(
       });
     }
 
+    const { admin } = user;
+
     request.user = {
       id: sub,
+      admin: admin!,
     };
 
     return next();

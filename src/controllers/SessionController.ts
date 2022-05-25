@@ -20,13 +20,13 @@ class SessionController {
     const user = await UserRepository.findByEmail({ email });
 
     if (!user) {
-      return response.status(400).json({ error: 'Incorrect email/password combination.' });
+      return response.status(400).json({ message: 'Combinação email/senha incorreta.' });
     }
 
     const passwordMatched = await bcrypt.compare(password, user.password);
 
     if (!passwordMatched) {
-      return response.status(400).json({ error: 'Incorrect email/password combination.' });
+      return response.status(400).json({ message: 'Combinação email/senha incorreta.' });
     }
 
     const { expiresIn, secret } = auth.jwt;
@@ -37,12 +37,11 @@ class SessionController {
     });
 
     return response.json({
-      data: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        credits: user.credits,
-      },
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      credits: user.credits,
       token,
     });
   }

@@ -15,7 +15,7 @@ class UserController {
   async index(request: Request, response: Response) {
     const allUsers = await UserRepository.findAll();
 
-    return response.json({ users: allUsers });
+    return response.json(allUsers);
   }
 
   async store(request: Request<{}, any, CreateUserData, any>, response: Response) {
@@ -77,7 +77,13 @@ class UserController {
       return response.status(400).json({ error: 'User not found.' });
     }
 
-    return response.json({ data: user });
+    const {
+      id: userId, email, name, refer, credits, avatar,
+    } = user;
+
+    return response.json({
+      id: userId, email, name, refer, credits, avatar,
+    });
   }
 
   async delete(request: Request, response: Response) {
@@ -96,8 +102,9 @@ class UserController {
   async update(request: Request, response: Response) {
     const { id } = request.params;
     const {
-      name, email, password, confirm_password, filename,
+      name, email, password, confirm_password, filename, credits,
     } = request.body;
+    const { admin } = request.user;
 
     const checkUserExists = await UserRepository.findById({ id });
 
@@ -124,6 +131,25 @@ class UserController {
       return response.status(400).json({ error: 'E-mail already used.' });
     }
 
+    const updateData = {
+      id,
+    };
+
+    Object.defineProperties(updateData, {
+      name: {
+        configurable: true,
+        writable: true,
+        enumerable: true,
+        value: name,
+      },
+      email: {
+        configurable: true,
+        writable: true,
+        enumerable: true,
+        value: email.toLowerCase(),
+      },
+    });
+
     let signedUrl = null;
     let fileId = null;
 
@@ -135,43 +161,37 @@ class UserController {
       signedUrl = await s3Storage.generateSignedUrl(fileId);
     }
 
-    if (!password) {
-      const user = await UserRepository.update({
-        id,
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-      });
+    if (password) {
+      if (password !== confirm_password) {
+        return response.status(400).json({ error: 'Confirm password/password must be equal.' });
+      }
 
-      return response.json({
-        message: 'User updated.',
-        data: {
-          ...user,
-          avatar_url: signedUrl,
-          avatar_id: fileId,
-        },
+      const hashedPassword = bcrypt.hashSync(password.trim(), 8);
+
+      Object.defineProperty(updateData, 'password', {
+        configurable: true,
+        writable: true,
+        enumerable: true,
+        value: hashedPassword,
       });
     }
 
-    if (password && password !== confirm_password) {
-      return response.status(400).json({ error: 'Confirm password/password must be equal.' });
+    if ((credits >= 0) && admin) {
+      Object.defineProperty(updateData, 'credits', {
+        configurable: true,
+        writable: true,
+        enumerable: true,
+        value: credits,
+      });
     }
 
-    const hashedPassword = bcrypt.hashSync(password.trim(), 8);
-
-    const user = await UserRepository.update({
-      id,
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      password: hashedPassword,
-    });
+    const user = await UserRepository.update(updateData);
 
     return response.json({
       message: 'User updated.',
-      data: {
-        ...user,
-        avatar_url: signedUrl,
-        avatar_id: fileId,
-      },
+      ...user,
+      avatar_url: signedUrl,
+      avatar_id: fileId,
     });
   }
 }

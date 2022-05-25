@@ -1,4 +1,6 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client, PutObjectCommand, DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import upload from '@config/upload';
@@ -16,7 +18,7 @@ class S3StorageProvider {
     });
   }
 
-  public async generateSignedUrl(fileId: string) {
+  public async generateSignedUrl(fileId: string): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: `${upload.aws.bucket}`,
       Key: fileId,
@@ -28,7 +30,7 @@ class S3StorageProvider {
     });
   }
 
-  public async removeFile(fileId: string) {
+  public async removeFile(fileId: string): Promise<any> {
     return this.client.send(
       new DeleteObjectCommand({ Bucket: `${upload.aws.bucket}`, Key: fileId }),
     );
